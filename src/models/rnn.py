@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 from keras.callbacks import EarlyStopping
 
 class RNN:
-    def __init__(self, data, target_col, units=10, epochs=100, batch_size=32, steps=5, patience=5):
+    def __init__(self, data, target_col, units=10, epochs=100, batch_size=32, steps=5, patience=5, verbose=False):
         self.data = data
         self.target_col = target_col
         self.units = units
@@ -22,7 +22,9 @@ class RNN:
         self.history = None
         self.train_size = None
         self.name = 'RNN'
-        self.early_stopping = EarlyStopping(monitor='loss', patience=patience)
+        self.patience = patience
+        self.early_stopping = EarlyStopping(monitor='loss', patience=self.patience)
+        self.verbose = verbose
 
     def evaluate(self, train_size=0.66, verbose=0):
         self.train_size = train_size
@@ -37,10 +39,11 @@ class RNN:
         # build model
         self.build_model(X_train, y_train)
 
-        print('\n++++++++++++++++++++++++++++++++++++++++')
-        print(f'{self.name} Model Summary:')
-        print(self.model.summary())
-        print(f'Training {self.name} Model...')
+        if self.verbose:
+            print('\n++++++++++++++++++++++++++++++++++++++++')
+            print(f'{self.name} Model Summary:')
+            print(self.model.summary())
+            print(f'Training {self.name} Model...')
         self.history = self.model.fit(X_train, y_train, epochs=self.epochs, batch_size=self.batch_size, verbose=verbose, callbacks=[self.early_stopping])
 
         test_data = self.prepare_test_data(self.train, self.test, n_steps=self.steps)
@@ -102,13 +105,11 @@ class RNN:
         plt.plot(full_data['Year'], full_data['Predicted Yield (bu/ac)'], label='Predicted Yield (bu/ac)', color='red')
         plt.xlabel("Year")
         plt.legend()
-        plt.savefig(f"images/{self.name}_results_{self.batch_size}batch_{self.epochs}epochs_{self.steps}steps_{self.units}units.png")
+        plt.savefig(f"images/{self.name}_results_{self.batch_size}batch_{self.steps}steps_{self.units}units_{self.patience}patience.png")
     
         plt.figure(figsize=(16, 8))
         plt.plot(self.history.history['loss'], label='Training MSE', color='blue')
         plt.title("Training Loss")
         plt.xlabel("Epochs")
         plt.legend()
-        plt.savefig(f"images/{self.name}_training_mse_{self.batch_size}batch_{self.epochs}epochs_{self.steps}steps_{self.units}units.png")
-
-
+        plt.savefig(f"images/{self.name}_training_mse_{self.batch_size}batch_{self.steps}steps_{self.units}units_{self.patience}patience.png")

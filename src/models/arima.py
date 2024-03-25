@@ -33,6 +33,8 @@ class ARIMA:
         for t in range(len(self.test)):
             model = arima(self.history, order=self.order)
             model_fit = model.fit()
+            if t == 0:
+                print("Model summary: \n", model_fit.summary())
             output = model_fit.forecast()
             yhat = output[0]
             self.predictions.append(yhat)
