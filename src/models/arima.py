@@ -19,7 +19,7 @@ class ARIMA:
         self.performance = None
 
     # evaluate the model for a given
-    def evaluate(self, train_size=0.66):
+    def evaluate(self, train_size=0.8):
         size = ceil(len(self.X) * train_size)
         self.train, self.test = self.X[0:size], self.X[size:]
         self.history = [x for x in self.train]
@@ -58,9 +58,13 @@ class ARIMA:
     def plot_results(self):
         # plot forecasts against actual outcomes
         fig = plt.figure(figsize=(16, 8))
+        years = range(1945+len(self.train), 1945+len(self.train)+len(self.test))
         plt.plot(self.test)
         plt.plot(self.predictions, color='red')
+        plt.xticks(range(len(self.test)), labels=years)
+        plt.title("ARIMA Model Results")
         plt.legend(['Observed', 'Predicted'])
+        plt.xlabel("Year")
         plt.savefig('images/arima_results.png')
 
         # plt.figure(figsize=(16, 8))

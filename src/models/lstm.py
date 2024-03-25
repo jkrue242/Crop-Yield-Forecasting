@@ -96,13 +96,18 @@ class LSTM:
         test = self.test.reset_index()
         full_data = pd.concat([test, self.pred], axis=1)
         plt.figure(figsize=(16, 8))
+        plt.title("LSTM Model Results")
         plt.plot(full_data['Year'], full_data[self.target_col], label='Observed Yield (bu/ac)', color='blue')
         plt.plot(full_data['Year'], full_data['Predicted Yield (bu/ac)'], label='Predicted Yield (bu/ac)', color='red')
+        plt.xlabel("Year")
         plt.legend()
         plt.savefig(f"images/lstm_results_{self.batch_size}batch_{self.epochs}epochs_{self.steps}steps_{self.units}units.png")
-        
+    
         plt.figure(figsize=(16, 8))
         plt.plot(self.history.history['loss'], label='Training MSE', color='blue')
+        plt.title("Training Loss")
+        plt.xlabel("Epochs")
+        plt.legend()
         plt.savefig(f"images/lstm_training_mse_{self.batch_size}batch_{self.epochs}epochs_{self.steps}steps_{self.units}units.png")
 
 
