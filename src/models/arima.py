@@ -16,15 +16,19 @@ class ARIMA:
         self.test = None
         self.history = None
         self.predictions = None
+        self.train_size = None
         self.performance = None
 
     # evaluate the model for a given
     def evaluate(self, train_size=0.8):
+        self.train_size = train_size
         size = ceil(len(self.X) * train_size)
         self.train, self.test = self.X[0:size], self.X[size:]
         self.history = [x for x in self.train]
         self.predictions = list()
         self.performance = []
+        print("=========================================")
+        print(f'Training ARIMA Model...')
         # walk-forward validation
         for t in range(len(self.test)):
             model = arima(self.history, order=self.order)
@@ -34,10 +38,6 @@ class ARIMA:
             self.predictions.append(yhat)
             obs = self.test[t]
             self.history.append(obs)
-
-        # evaluate forecasts
-        rmse = sqrt(mean_squared_error(self.test, self.predictions))
-        print('ARIMA RMSE: %.3f' % rmse)
 
     # evaluate the best_combination of p, d and q values for the model
     def get_order(p_values=[0, 1, 2, 3], d_values=[0, 1, 2, 3], q_values=[0, 1, 2, 3]):
@@ -62,7 +62,7 @@ class ARIMA:
         plt.plot(self.test)
         plt.plot(self.predictions, color='red')
         plt.xticks(range(len(self.test)), labels=years)
-        plt.title("ARIMA Model Results")
+        plt.title(f"ARIMA Model Results\n Parameters: order: {self.order} | training set size: {self.train_size * 100}%")
         plt.legend(['Observed', 'Predicted'])
         plt.xlabel("Year")
         plt.savefig('images/arima_results.png')
