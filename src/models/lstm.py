@@ -4,9 +4,7 @@ from keras.layers import Dense, LSTM as lstm
 
 class LSTM(RNN):
     def __init__(self, data, target_col, params: {}, verbose=False):
-        super().__init__(data=data, target_col=target_col, units=params["units"], 
-                        epochs=params["epochs"], batch_size=params["batch_size"], 
-                        steps=params["steps"], patience=params["patience"], verbose=verbose)
+        super().__init__(data=data, target_col=target_col, params=params, verbose=verbose)
         self.name = 'LSTM'
 
     def build_model(self, X_train, y_train):

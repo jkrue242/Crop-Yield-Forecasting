@@ -4,15 +4,17 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from keras.callbacks import EarlyStopping
+from keras.models import Sequential
+from keras.layers import Dense, SimpleRNN as rnn
 
 class RNN:
-    def __init__(self, data, target_col, units=10, epochs=100, batch_size=32, steps=5, patience=5, verbose=False):
+    def __init__(self, data, target_col, params={}, verbose=False):
         self.data = data
         self.target_col = target_col
-        self.units = units
-        self.epochs = epochs
-        self.batch_size = batch_size
-        self.steps = steps
+        self.units = params["units"]
+        self.epochs = params["epochs"]
+        self.batch_size = params["batch_size"]
+        self.steps = params["steps"]
         self.train = None
         self.test = None
         self.model = None
@@ -22,7 +24,7 @@ class RNN:
         self.history = None
         self.train_size = None
         self.name = 'RNN'
-        self.patience = patience
+        self.patience = params["patience"]
         self.early_stopping = EarlyStopping(monitor='loss', patience=self.patience)
         self.verbose = verbose
 
@@ -79,7 +81,13 @@ class RNN:
         return np.array(X_train), np.array(y_train)
 
     def build_model(self, X_train, y_train):
-        raise NotImplementedError
+        model = Sequential()
+        model.add(rnn(units=self.units, return_sequences=True, input_shape=(X_train.shape[1], X_train.shape[2])))
+        model.add(rnn(units=self.units, return_sequences=True))
+        model.add(rnn(units=self.units))
+        model.add(Dense(units=1))
+        model.compile(optimizer='adam', loss='mean_squared_error')
+        self.model = model
 
     def prepare_test_data(self, train, test, n_steps):
         train_last_steps = train[-n_steps:]

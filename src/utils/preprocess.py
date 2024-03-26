@@ -63,9 +63,23 @@ def _get_deere_stock_data(start_year=1945, end_year=2022):
 
     deere_stock_by_year = deere_stock.groupby('Year').agg({'Close': 'mean'}).reset_index().rename({'Close': 'DE Avg Stock Price'}, axis=1)  
     return deere_stock_by_year
-    
+
+# resample
+def resample(data, freq='M'):
+    date_range = pd.date_range(start='1945-01-01', end='2022-01-01', freq='AS')
+    data.index = date_range
+    data = data.resample('MS').interpolate(method='linear')
+
+    data = data.reset_index()
+    print(data.columns)
+    data = data.rename(columns={'index': 'date'})
+
+    # change datetime to int
+    data['date'] = data['date'].astype(int) // 10**9  # Convert to seconds since Unix epoch
+    return data
+
 # get all data, merge it, and return it
-def get_data():
+def get_data(freq="M"):
     county_timeseries = _get_county_data()
     weather_dsm = _get_weather_data()
     deere_stock = _get_deere_stock_data()
@@ -75,5 +89,7 @@ def get_data():
     timeseries = timeseries.merge(price_data, on='Year', how='left')
     timeseries["Avg Price"] = timeseries["Avg Price"].fillna(1.0)
     timeseries["DE Avg Stock Price"] = timeseries["DE Avg Stock Price"].fillna(0.0)
+
+    timeseries = resample(timeseries, freq=freq)
     return timeseries
 
