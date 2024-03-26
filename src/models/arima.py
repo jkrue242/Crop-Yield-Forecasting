@@ -40,7 +40,10 @@ class ARIMA:
             self.predictions.append(yhat)
             obs = self.test[t]
             self.history.append(obs)
-
+            self.performance.append(obs)
+        # evaluate forecasts
+        rmse = sqrt(mean_squared_error(self.test, self.predictions))
+        print(f'RMSE: {rmse}')
     # evaluate the best_combination of p, d and q values for the model
     def get_order(p_values=[0, 1, 2, 3], d_values=[0, 1, 2, 3], q_values=[0, 1, 2, 3]):
         dataset = dataset.astype('float32')
@@ -59,7 +62,7 @@ class ARIMA:
 
     def plot_results(self):
         # plot forecasts against actual outcomes
-        fig = plt.figure(figsize=(16, 8))
+        fig = plt.figure(figsize=(12, 10))
         years = range(1945+len(self.train), 1945+len(self.train)+len(self.test))
         plt.plot(self.test)
         plt.plot(self.predictions, color='red')
@@ -67,7 +70,7 @@ class ARIMA:
         plt.title(f"ARIMA Model Results\n Parameters: order: {self.order} | training set size: {self.train_size * 100}%")
         plt.legend(['Observed', 'Predicted'])
         plt.xlabel("Year")
-        plt.savefig('images/arima_results.png')
+        plt.savefig('images/arima/arima_results.png')
 
         # plt.figure(figsize=(16, 8))
         # plt.plot(self.performance, label='Training MSE')

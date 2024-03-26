@@ -25,8 +25,17 @@ class RNN:
         self.train_size = None
         self.name = 'RNN'
         self.patience = params["patience"]
-        self.early_stopping = EarlyStopping(monitor='loss', patience=self.patience)
+        self.early_stopping = EarlyStopping(
+            monitor="val_loss",
+            min_delta=0,
+            patience=self.patience,
+            verbose=0,
+            mode="auto",
+            baseline=None,
+            restore_best_weights=True,
+            start_from_epoch=0,)        
         self.verbose = verbose
+        self.optimizer = params["optimizer"]
 
     def evaluate(self, train_size=0.66, verbose=0):
         self.train_size = train_size
@@ -46,7 +55,9 @@ class RNN:
             print(f'{self.name} Model Summary:')
             print(self.model.summary())
             print(f'Training {self.name} Model...')
-        self.history = self.model.fit(X_train, y_train, epochs=self.epochs, batch_size=self.batch_size, verbose=verbose, callbacks=[self.early_stopping])
+            verbose = 1
+        self.history = self.model.fit(X_train, y_train, epochs=self.epochs, batch_size=self.batch_size, 
+                            verbose=verbose, callbacks=[self.early_stopping], validation_split=0.1)
 
         test_data = self.prepare_test_data(self.train, self.test, n_steps=self.steps)
 
@@ -60,9 +71,28 @@ class RNN:
         final_predictions = self.sc2.inverse_transform(y_pred_df)
         pred_df = pd.DataFrame(final_predictions, columns=['Predicted Yield (bu/ac)'])
         self.pred = pred_df
+        results = self.model.evaluate(test_data, self.test[self.target_col], batch_size=self.batch_size)
+        metrics = f'''
+        =========================================\n
+        {self.name} Parameters: \n
+        epochs: {self.epochs}\n
+        batch_size: {self.batch_size}\n
+        units: {self.units}\n
+        steps: {self.steps}\n
+        train_size: {self.train_size}\n
+        patience: {self.patience}\n
+        ----------------------------------------\n
+        {self.name} Metrics: \n 
+        mse:{self.history.history["mean_squared_error"][-1]}\n
+        loss:{self.history.history["loss"][-1]}\n
+        val_mse:{self.history.history["val_mean_squared_error"][-1]}\n
+        val_loss:{self.history.history["val_loss"][-1]}
+        '''
+        print(metrics)
 
-        rmse = self.history.history['loss'][-1]
-        return rmse
+        f = open(f"results/{self.name}/params_acc.txt", "a")
+        f.write("\n" + metrics)
+        f.close()
 
     def scale_data(self):
         sc1 = StandardScaler()
@@ -86,7 +116,7 @@ class RNN:
         model.add(rnn(units=self.units, return_sequences=True))
         model.add(rnn(units=self.units))
         model.add(Dense(units=1))
-        model.compile(optimizer='adam', loss='mean_squared_error')
+        model.compile(optimizer=self.optimizer, loss='mean_squared_error')
         self.model = model
 
     def prepare_test_data(self, train, test, n_steps):
@@ -107,17 +137,25 @@ class RNN:
     def plot_results(self):
         test = self.test.reset_index()
         full_data = pd.concat([test, self.pred], axis=1)
-        plt.figure(figsize=(16, 8))
-        plt.title(f"{self.name} Model Results\n Parameters: batch size: {self.batch_size} | epochs: {self.epochs} | steps: {self.steps} | units: {self.units} | training set size: {self.train_size * 100}%")
-        plt.plot(full_data['Year'], full_data[self.target_col], label='Observed Yield (bu/ac)', color='blue')
-        plt.plot(full_data['Year'], full_data['Predicted Yield (bu/ac)'], label='Predicted Yield (bu/ac)', color='red')
+
+        # get first month per year 
+        full_data = full_data.reset_index()
+        full_data['Year'] = pd.to_datetime(full_data['index']).dt.year
+        full_data = full_data.groupby('Year').first().reset_index()
+
+        full_data.to_csv(f"predictions/{self.name}_preds.csv")
+        plt.figure(figsize=(12, 10))
+        plt.title(f"{self.name} Model Results\n Parameters: batch size: {self.batch_size} | steps: {self.steps} | units: {self.units} | training set size: {self.train_size * 100}% | optimizer: {self.optimizer} | patience: {self.patience}")
+        plt.plot(full_data["Year"], full_data[self.target_col], label='Observed Yield (bu/ac)', color='blue')
+        plt.plot(full_data["Year"], full_data['Predicted Yield (bu/ac)'], label='Predicted Yield (bu/ac)', color='red')
         plt.xlabel("Year")
         plt.legend()
-        plt.savefig(f"images/{self.name}_results_{self.batch_size}batch_{self.steps}steps_{self.units}units_{self.patience}patience.png")
+        plt.savefig(f"images/{self.name}/{self.name}_results_{self.batch_size}batch_{self.steps}steps_{self.units}units_{self.patience}patience.png")
     
-        plt.figure(figsize=(16, 8))
-        plt.plot(self.history.history['loss'], label='Training MSE', color='blue')
+        plt.figure(figsize=(12, 10))
+        plt.plot(self.history.history['loss'], label='Training loss', color='blue')
+        plt.plot(self.history.history['val_loss'], label='Validation loss', color='red')
         plt.title("Training Loss")
         plt.xlabel("Epochs")
         plt.legend()
-        plt.savefig(f"images/{self.name}_training_mse_{self.batch_size}batch_{self.steps}steps_{self.units}units_{self.patience}patience.png")
+        plt.savefig(f"images/{self.name}/{self.name}_training_mse_{self.batch_size}batch_{self.steps}steps_{self.units}units_{self.patience}patience.png")

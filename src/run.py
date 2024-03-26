@@ -6,6 +6,7 @@ from models.lstm import LSTM
 from models.gru import GRU
 import pandas as pd
 import json
+from keras.optimizers import Adam, RMSprop, SGD
 
 def grid_search(model_name:str, params:{}, target_col):
     best_params = {
@@ -50,6 +51,7 @@ def grid_search(model_name:str, params:{}, target_col):
                                 best_params['train_size'] = size
                                 best_params['patience'] = patience
                                 print(f'Best loss: {best_rmse} | Best Params: {best_params}')
+    save_dict_to_json(params=best_params, filename=f'{model_name}_params.json')
     return best_params
 
 def save_dict_to_json(dictionary, filename):
@@ -87,26 +89,31 @@ if __name__ == '__main__':
     # gru_params = grid_search('gru', grid_params, target)
     # save_dict_to_json(gru_params, 'gru_params.json')
 
-    rnn_params = load_params(filename='rnn_params.json')
-    lstm_params = load_params(filename='lstm_params.json')
-    gru_params = load_params(filename='gru_params.json')
+    # rnn_params = load_params(filename='rnn_params.json')
+    # lstm_params = load_params(filename='lstm_params.json')
+    # gru_params = load_params(filename='gru_params.json')
+
+    params = {'epochs': 200, 'batch_size': 64, 'units': 60, 'steps': 110, 'train_size': 0.80, 'patience': 20, 'optimizer': 'adam'}
+
+    # reduce features for RNN models
+    nn_data = data[[target, 'Avg Temp', 'Precip (Inches)']]
 
     # ### ARIMA Model ###
     arima = ARIMA(data, target_col=target)
     arima.evaluate(train_size=0.7)
     arima.plot_results()
 
-    ### RNN Model ###
-    rnn = RNN(data, target_col=target, params=lstm_params, verbose=True)
-    rmse = rnn.evaluate(train_size=0.7)
-    rnn.plot_results()
+    # ### RNN Model ###
+    # rnn = RNN(nn_data, target_col=target, params=params, verbose=True)
+    # rmse = rnn.evaluate(train_size=0.7)
+    # rnn.plot_results()
 
-    ### LSTM Model ###
-    lstm = LSTM(data, target_col=target, params=lstm_params, verbose=True)
-    rmse = lstm.evaluate(train_size=0.7)
-    lstm.plot_results()
+    # ### LSTM Model ###
+    # lstm = LSTM(nn_data, target_col=target, params=params, verbose=True)
+    # rmse = lstm.evaluate(train_size=0.7)
+    # lstm.plot_results()
 
     ### GRU Model ###
-    gru = GRU(data, target_col=target, params=gru_params, verbose=True)
-    rmse = gru.evaluate(train_size=0.7)
+    gru = GRU(nn_data, target_col=target, params=params, verbose=True)
+    gru.evaluate(train_size=params['train_size'])
     gru.plot_results()

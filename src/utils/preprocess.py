@@ -70,12 +70,8 @@ def resample(data, freq='M'):
     data.index = date_range
     data = data.resample('MS').interpolate(method='linear')
 
-    data = data.reset_index()
-    print(data.columns)
-    data = data.rename(columns={'index': 'date'})
-
     # change datetime to int
-    data['date'] = data['date'].astype(int) // 10**9  # Convert to seconds since Unix epoch
+    # data['date'] = data['date'].astype(int) // 10**9  # Convert to seconds since Unix epoch
     return data
 
 # get all data, merge it, and return it
