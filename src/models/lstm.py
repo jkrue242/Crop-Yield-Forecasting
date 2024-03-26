@@ -1,6 +1,8 @@
 from models.rnn import RNN
 from keras.models import Sequential
-from keras.layers import Dense, LSTM as lstm
+from keras.layers import Dense, LSTM as lstm, Dropout
+import keras.optimizers as ko
+import keras.metrics as km
 
 class LSTM(RNN):
     def __init__(self, data, target_col, params: {}, verbose=False):
@@ -9,8 +11,8 @@ class LSTM(RNN):
 
     def build_model(self, X_train, y_train):
         model = Sequential()
-        model.add(lstm(units=self.units, return_sequences=True, input_shape=(X_train.shape[1], X_train.shape[2])))
-        model.add(lstm(units=self.units))
+        model.add(lstm(units=self.units, return_sequences=False, input_shape=(X_train.shape[1], X_train.shape[2])))
+        model.add(Dropout(0.3))
         model.add(Dense(units=1))
-        model.compile(optimizer='adam', loss='mean_squared_error')
+        model.compile(optimizer=ko.RMSprop(), loss='mean_squared_error', metrics=[km.mean_squared_error])        
         self.model = model

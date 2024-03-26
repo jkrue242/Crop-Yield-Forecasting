@@ -100,20 +100,20 @@ if __name__ == '__main__':
 
     # ### ARIMA Model ###
     arima = ARIMA(data, target_col=target)
-    arima.evaluate(train_size=0.7)
-    arima.plot_results()
+    arima.evaluate(train_size=params['train_size'])
+    # arima.plot_results()
 
-    # ### RNN Model ###
-    # rnn = RNN(nn_data, target_col=target, params=params, verbose=True)
-    # rmse = rnn.evaluate(train_size=0.7)
+    ### RNN Model ###
+    rnn = RNN(nn_data, target_col=target, params=params, verbose=True)
+    rmse = rnn.evaluate(train_size=params['train_size'])
     # rnn.plot_results()
 
-    # ### LSTM Model ###
-    # lstm = LSTM(nn_data, target_col=target, params=params, verbose=True)
-    # rmse = lstm.evaluate(train_size=0.7)
+    ### LSTM Model ###
+    lstm = LSTM(nn_data, target_col=target, params=params, verbose=True)
+    rmse = lstm.evaluate(train_size=params['train_size'])
     # lstm.plot_results()
 
-    ### GRU Model ###
+    # ### GRU Model ###
     gru = GRU(nn_data, target_col=target, params=params, verbose=True)
     gru.evaluate(train_size=params['train_size'])
-    gru.plot_results()
+    # gru.plot_results()

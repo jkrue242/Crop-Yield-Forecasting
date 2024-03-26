@@ -5,7 +5,9 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from keras.callbacks import EarlyStopping
 from keras.models import Sequential
-from keras.layers import Dense, SimpleRNN as rnn
+from keras.layers import Dense, SimpleRNN as rnn, Dropout
+import keras.optimizers as ko
+import keras.metrics as km
 
 class RNN:
     def __init__(self, data, target_col, params={}, verbose=False):
@@ -35,7 +37,6 @@ class RNN:
             restore_best_weights=True,
             start_from_epoch=0,)        
         self.verbose = verbose
-        self.optimizer = params["optimizer"]
 
     def evaluate(self, train_size=0.66, verbose=0):
         self.train_size = train_size
@@ -112,11 +113,10 @@ class RNN:
 
     def build_model(self, X_train, y_train):
         model = Sequential()
-        model.add(rnn(units=self.units, return_sequences=True, input_shape=(X_train.shape[1], X_train.shape[2])))
-        model.add(rnn(units=self.units, return_sequences=True))
-        model.add(rnn(units=self.units))
+        model.add(rnn(units=self.units, return_sequences=False, input_shape=(X_train.shape[1], X_train.shape[2])))
+        model.add(Dropout(0.3))
         model.add(Dense(units=1))
-        model.compile(optimizer=self.optimizer, loss='mean_squared_error')
+        model.compile(optimizer=ko.RMSprop(), loss='mean_squared_error', metrics=[km.mean_squared_error])        
         self.model = model
 
     def prepare_test_data(self, train, test, n_steps):
@@ -145,7 +145,7 @@ class RNN:
 
         full_data.to_csv(f"predictions/{self.name}_preds.csv")
         plt.figure(figsize=(12, 10))
-        plt.title(f"{self.name} Model Results\n Parameters: batch size: {self.batch_size} | steps: {self.steps} | units: {self.units} | training set size: {self.train_size * 100}% | optimizer: {self.optimizer} | patience: {self.patience}")
+        plt.title(f"{self.name} Model Results\n Parameters: batch size: {self.batch_size} | steps: {self.steps} | units: {self.units} | training set size: {self.train_size * 100}% | patience: {self.patience}")
         plt.plot(full_data["Year"], full_data[self.target_col], label='Observed Yield (bu/ac)', color='blue')
         plt.plot(full_data["Year"], full_data['Predicted Yield (bu/ac)'], label='Predicted Yield (bu/ac)', color='red')
         plt.xlabel("Year")
