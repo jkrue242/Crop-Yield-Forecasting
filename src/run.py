@@ -8,6 +8,9 @@ import pandas as pd
 import json
 from keras.optimizers import Adam, RMSprop, SGD
 
+"""
+Basic grid search function to find the best parameters for a given model
+"""
 def grid_search(model_name:str, params:{}, target_col):
     best_params = {
         'epochs': None,
@@ -54,66 +57,53 @@ def grid_search(model_name:str, params:{}, target_col):
     save_dict_to_json(params=best_params, filename=f'{model_name}_params.json')
     return best_params
 
+"""
+Save model parameters to a json file
+"""
 def save_dict_to_json(dictionary, filename):
     with open(filename, "w") as outfile: 
         json.dump(distionary, outfile)
 
+"""
+Load model parameters from a json file
+"""
 def load_params(filename):
     with open(filename) as json_file:
         return json.load(json_file)
 
-
+# driver code
 if __name__ == '__main__':
+    # set upsample frequency to monthly
     sample_freq = 'M'
 
-    ### Import data ###
+    # import data
     data = get_data(freq=sample_freq)
-    data.to_csv('data/dataset.csv', index=False)
-    plot_dataset(data)
 
+    # save dataset to .csv
+    data.to_csv('data/dataset.csv', index=False)
     target = "CORN, GRAIN - YIELD, MEASURED IN BU / ACRE"
 
-    grid_params = {
-        'epochs': [50, 100, 200, 300],
-        'batches': [4, 8, 16, 32, 64],
-        'units': [10, 20, 50],
-        'steps': [10, 20, 50, 100],
-        'train_sizes': [0.7],
-        'patience': [5]
-    }
-    # grid search
-    # rnn_params = grid_search('rnn', grid_params, target)
-    # save_dict_to_json(rnn_params, 'rnn_params.json')
-    # lstm_params = grid_search('lstm', grid_params, target)
-    # save_dict_to_json(lstm_params, 'lstm_params.json')
-    # gru_params = grid_search('gru', grid_params, target)
-    # save_dict_to_json(gru_params, 'gru_params.json')
-
-    # rnn_params = load_params(filename='rnn_params.json')
-    # lstm_params = load_params(filename='lstm_params.json')
-    # gru_params = load_params(filename='gru_params.json')
-
-    params = {'epochs': 200, 'batch_size': 64, 'units': 60, 'steps': 110, 'train_size': 0.80, 'patience': 20, 'optimizer': 'adam'}
-
-    # reduce features for RNN models
-    nn_data = data[[target, 'Avg Temp', 'Precip (Inches)']]
-
-    # ### ARIMA Model ###
-    arima = ARIMA(data, target_col=target)
-    arima.evaluate(train_size=params['train_size'])
-    # arima.plot_results()
+    params = {
+        'epochs': 200, 
+        'batch_size': 64, 
+        'units': 60, 
+        'steps': 110, 
+        'loss': 'mean_squared_error',
+        'train_size': 0.80, 
+        'patience': 20, 
+        }
 
     ### RNN Model ###
-    rnn = RNN(nn_data, target_col=target, params=params, verbose=True)
+    rnn = RNN(data, target_col=target, params=params, verbose=True)
     rmse = rnn.evaluate(train_size=params['train_size'])
-    # rnn.plot_results()
+    rnn.plot_results()
 
     ### LSTM Model ###
-    lstm = LSTM(nn_data, target_col=target, params=params, verbose=True)
+    lstm = LSTM(data, target_col=target, params=params, verbose=True)
     rmse = lstm.evaluate(train_size=params['train_size'])
-    # lstm.plot_results()
+    lstm.plot_results()
 
     # ### GRU Model ###
-    gru = GRU(nn_data, target_col=target, params=params, verbose=True)
+    gru = GRU(data, target_col=target, params=params, verbose=True)
     gru.evaluate(train_size=params['train_size'])
-    # gru.plot_results()
+    gru.plot_results()
