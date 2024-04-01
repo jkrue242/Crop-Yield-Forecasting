@@ -3,8 +3,10 @@ Supervised machine learning project for Applied Machine Learning, spring 2024
 
 Forecasting Crop yields
 
-Comparative study between models:
+Comparative study between neural network models:
 
-ARIMA
-LSTM
-CNN
+Recurrent Neural Networks (RNNs)
+Long Short-Term Memory Networks (LSTMs)
+Gated Recurrent Unit Networks (GRUs)
+
+
