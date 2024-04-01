@@ -1,7 +1,5 @@
-# Timeseries Forecasting
+# Forecasting Crop Yields
 Supervised machine learning project for Applied Machine Learning, spring 2024
-
-Forecasting Crop yields
 
 Comparative study between neural network models:
 - Recurrent Neural Networks (RNNs)
