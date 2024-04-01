@@ -4,7 +4,19 @@ from math import sqrt, ceil
 from pandas.plotting import autocorrelation_plot
 import matplotlib.pyplot as plt
 
+"""
+Autoregressive integrated moving average (ARIMA) class
+"""
 class ARIMA:
+    """
+    ARIMA takes in a dataframe, target column (prediction target), and the following parameters:
+    - data: the dataframe containing the data
+    - target_col: the column to predict
+    - get_order: whether to find the best combination of p, d, and q values
+    - p_vals: list of p values to try
+    - d_vals: list of d values to try
+    - q_vals: list of q values to try
+    """
     def __init__(self, data, target_col, get_order=False, p_vals=[0, 1, 2, 3], d_vals=[0, 1, 2, 3], q_vals=[0, 1, 2, 3]):
         self.X = data[target_col].values
         self.order = None
@@ -19,8 +31,11 @@ class ARIMA:
         self.train_size = None
         self.performance = None
 
-    # evaluate the model for a given
+    """
+    Evaluate the ARIMA model
+    """
     def evaluate(self, train_size=0.8):
+        # prepare data
         self.train_size = train_size
         size = ceil(len(self.X) * train_size)
         self.train, self.test = self.X[0:size], self.X[size:]
@@ -44,10 +59,14 @@ class ARIMA:
         # evaluate forecasts
         rmse = sqrt(mean_squared_error(self.test, self.predictions))
         print(f'RMSE: {rmse}')
-    # evaluate the best_combination of p, d and q values for the model
+
+    """
+    Get the best combination of p, d, and q values
+    """
     def get_order(p_values=[0, 1, 2, 3], d_values=[0, 1, 2, 3], q_values=[0, 1, 2, 3]):
         dataset = dataset.astype('float32')
         best_score, best_cfg = float("inf"), None
+        # grid search
         for p in p_values:
             for d in d_values:
                 for q in q_values:
@@ -60,6 +79,9 @@ class ARIMA:
                         continue
         self.order = best_cfg
 
+    """
+    Plot the results of the ARIMA model
+    """
     def plot_results(self):
         # plot forecasts against actual outcomes
         fig = plt.figure(figsize=(12, 10))

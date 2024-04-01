@@ -1,5 +1,8 @@
 import matplotlib.pyplot as plt
 
+"""
+Plotting function to visualize the dataset
+"""
 def plot_dataset(data):
     df = data.copy()
     fig, axs = plt.subplots(2, 3, figsize=(16, 8))
@@ -9,4 +12,5 @@ def plot_dataset(data):
         "Precip (Inches)": "Precip (in)",
         }, inplace=True)
     plot = df.plot(x='Year')
+    # save the plot
     plot.get_figure().savefig("images/dataset.png")
