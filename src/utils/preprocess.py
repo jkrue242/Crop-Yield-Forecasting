@@ -78,14 +78,8 @@ def resample(data, freq='M'):
 def get_data(freq="M"):
     county_timeseries = _get_county_data()
     weather_dsm = _get_weather_data()
-    deere_stock = _get_deere_stock_data()
-    price_data = _get_pricing_data()
     timeseries = county_timeseries.merge(weather_dsm, on='Year', how='left')
-    timeseries = timeseries.merge(deere_stock, on='Year', how='left')
-    timeseries = timeseries.merge(price_data, on='Year', how='left')
-    timeseries["Avg Price"] = timeseries["Avg Price"].fillna(1.0)
-    timeseries["DE Avg Stock Price"] = timeseries["DE Avg Stock Price"].fillna(0.0)
-
+    timeseries = timeseries[['CORN, GRAIN - YIELD, MEASURED IN BU / ACRE', 'Avg Temp', 'Precip (Inches)']]
     timeseries = resample(timeseries, freq=freq)
     return timeseries
 

@@ -69,8 +69,6 @@ if __name__ == '__main__':
     ### Import data ###
     data = get_data(freq=sample_freq)
     data.to_csv('data/dataset.csv', index=False)
-    plot_dataset(data)
-
     target = "CORN, GRAIN - YIELD, MEASURED IN BU / ACRE"
 
     grid_params = {
@@ -95,25 +93,22 @@ if __name__ == '__main__':
 
     params = {'epochs': 200, 'batch_size': 64, 'units': 60, 'steps': 110, 'train_size': 0.80, 'patience': 20, 'optimizer': 'adam'}
 
-    # reduce features for RNN models
-    nn_data = data[[target, 'Avg Temp', 'Precip (Inches)']]
-
     # ### ARIMA Model ###
-    arima = ARIMA(data, target_col=target)
-    arima.evaluate(train_size=params['train_size'])
+    # arima = ARIMA(data, target_col=target)
+    # arima.evaluate(train_size=params['train_size'])
     # arima.plot_results()
 
     ### RNN Model ###
-    rnn = RNN(nn_data, target_col=target, params=params, verbose=True)
+    rnn = RNN(data, target_col=target, params=params, verbose=True)
     rmse = rnn.evaluate(train_size=params['train_size'])
-    # rnn.plot_results()
+    rnn.plot_results()
 
     ### LSTM Model ###
-    lstm = LSTM(nn_data, target_col=target, params=params, verbose=True)
+    lstm = LSTM(data, target_col=target, params=params, verbose=True)
     rmse = lstm.evaluate(train_size=params['train_size'])
-    # lstm.plot_results()
+    lstm.plot_results()
 
     # ### GRU Model ###
-    gru = GRU(nn_data, target_col=target, params=params, verbose=True)
+    gru = GRU(data, target_col=target, params=params, verbose=True)
     gru.evaluate(train_size=params['train_size'])
-    # gru.plot_results()
+    gru.plot_results()
