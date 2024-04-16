@@ -22,13 +22,24 @@ Process the USDA data to make it usable
 """
 def _process_usda_data(path):
     raw = pd.read_csv(path, parse_dates=["Year"])[['Year', 'Data Item', 'Value']]
-
+    
     # convert to datetime
     raw["Year"] = raw["Year"].dt.year
-
     # pivot to create useful columns
     timeseries = raw.pivot(index='Year', columns='Data Item', values='Value').reset_index()
     numeric_cols = timeseries.columns[1:]
+    for col in numeric_cols:
+        timeseries[col] = timeseries[col].str.replace(',', '').astype(float)
+    return timeseries
+
+def _process_midwest_data(path):
+    raw = pd.read_csv(path, parse_dates=["Year"])[['Year', 'State', 'County', 'Data Item', 'Value']]
+    raw = raw[raw['County'] != "OTHER COUNTIES"]
+    # convert to datetime
+    raw["Year"] = raw["Year"].dt.year
+    timeseries = raw.pivot_table(index=['Year', 'State', 'County'], columns='Data Item', values='Value').reset_index()
+    # pivot to create useful columns
+    numeric_cols = timeseries.columns[4:]
     for col in numeric_cols:
         timeseries[col] = timeseries[col].str.replace(',', '').astype(float)
     return timeseries
@@ -55,6 +66,9 @@ def _get_weather_data(path=data_path + 'dsm_climate_data_yoy.csv'):
         }
     ).reset_index()
     return weather_dsm
+
+def get_midwest_data(path=data_path +'midwest1.csv'):
+    return _process_midwest_data(path)
 
 """
 Upsample the data to a given frequency (default to monthly)
