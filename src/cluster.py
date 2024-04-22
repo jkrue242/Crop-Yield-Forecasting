@@ -1,8 +1,9 @@
-from models import kmeans
+from models.cluster_machine import ClusterMachine
 from utils.preprocess import get_midwest_data
 
 
 
 if __name__ == "__main__":
-    df = get_midwest_data()
-    print(df.head())
+    all_timeseries = get_midwest_data()
+    cm = ClusterMachine(all_timeseries, 3)
+    new_data = cm.cluster()

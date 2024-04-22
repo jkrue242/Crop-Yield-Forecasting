@@ -67,8 +67,47 @@ def _get_weather_data(path=data_path + 'dsm_climate_data_yoy.csv'):
     ).reset_index()
     return weather_dsm
 
+def interpolate_midwest_data(data):
+    series_lengths = [len(series) for series in data]
+    problems_index = []
+    max_len = max(series_lengths)
+    longest_series = None
+    for series in data:
+        if len(series) == max_len:
+            longest_series = series
+
+    for i in range(len(data)):
+        if len(data[i])!= max_len:
+            problems_index.append(i)
+            data[i] = data[i].reindex(longest_series.index)
+
+    for i in problems_index:
+        data[i].interpolate(limit_direction="both",inplace=True)
+    
+    for i in range(len(data)):
+        data[i].reset_index(inplace=True)
+        data[i].fillna(method='bfill', inplace=True)
+        data[i].fillna(method='ffill', inplace=True)
+        data[i].fillna(method='backfill', inplace=True)
+    
+    return data
+
+
 def get_midwest_data(path=data_path +'midwest1.csv'):
-    return _process_midwest_data(path)
+    full = _process_midwest_data(path)
+    series = breakup_timeseries(full)
+    return interpolate_midwest_data(data=series)
+
+def breakup_timeseries(data):
+    ts = []
+    data = data[(data["County"] != "OTHER COUNTIES") & (data["County"] != "OTHER (COMBINED) COUNTIES")]
+    data.set_index('Year', inplace=True)
+    states = data['State'].unique()
+    counties = data['County'].unique()
+    for s in states:
+        for c in counties:
+            ts.append(data[(data['State'] == s) & (data['County'] == c)])
+    return ts
 
 """
 Upsample the data to a given frequency (default to monthly)

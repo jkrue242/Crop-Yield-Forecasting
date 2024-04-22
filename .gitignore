@@ -2,3 +2,8 @@ images/*
 src/models/__pycache__/*
 predictions/*
 results/*
+src/utils/__pycache__/*
+venv/*
+
+# Ignore all .pyc files
+*.pyc

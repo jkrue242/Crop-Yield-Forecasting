@@ -14,3 +14,5 @@ def plot_dataset(data):
     plot = df.plot(x='Year')
     # save the plot
     plot.get_figure().savefig("images/dataset.png")
+
+    

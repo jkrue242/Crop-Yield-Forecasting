@@ -65,6 +65,7 @@ class RNN:
         # split data into training and testing sets
         self.train_size = train_size
         size = ceil(self.data.shape[0] * train_size)
+        print('size of test data:', size)
         self.train, self.test = self.data[0:size], self.data[size:]
 
         # scale data, convert to sequence form
