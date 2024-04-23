@@ -24,23 +24,22 @@ class ClusterMachine:
         self.scaled_data_dict = collections.defaultdict(dict)
         self.normalized_data = []
         self.cluster_count = 0
+        self.state_county_index = collections.defaultdict(dict)
+        self.cluster_data_map = collections.defaultdict(dict)
 
     
     def cluster(self):
         new_data = self.normalize()
-        # print(new_data)
-        # print(type(new_data))
-        # print(type(new_data[0]))
-
         # som = self.som_algorithm(new_data, verbose=True)
         #self.plot_som(5,5,som)
         labels = self.kmeans(new_data)
         # print(labels)
         self.plot_kmeans(new_data, labels)
-        return new_data
+        return self.scaled_data_dict
 
     def normalize(self):
         normalized_data = []
+        index = 0
         for i in range(len(self.data)):
             if not self.data[i].empty:
                 curr_ts = self.data[i]
@@ -52,6 +51,8 @@ class ClusterMachine:
                     self.scaled_data_dict[state][county] = MinMaxScaler().fit_transform(self.data_dict[state][county])
                     self.scaled_data_dict[state][county]= self.scaled_data_dict[state][county].reshape(len(self.data_dict[state][county]))
                     normalized_data.append(self.scaled_data_dict[state][county])
+                    self.state_county_index[state][county] = index
+                    index += 1
         self.normalized_data = normalized_data
         return self.normalized_data
 
@@ -95,11 +96,18 @@ class ClusterMachine:
         km = TimeSeriesKMeans(n_clusters=cluster_count, metric="dtw")
         self.cluster_count = cluster_count
         labels = km.fit_predict(data)
+        print('number of labels: ', len(labels))
+        # determine the cluster for each state-county pair
+        for i in range(len(labels)):
+            for state in self.state_county_index.keys():
+                for county in self.state_county_index[state].keys():
+                    # print(f'{state}, {county}: ', self.state_county_index[state][county])
+                    if self.state_county_index[state][county] == i:
+                        self.cluster_data_map[state][county] = labels[i]
         return labels
 
     def plot_kmeans(self, data, labels, cluster_count=10):
         plot_count = self.cluster_count
-
         fig, axs = plt.subplots(2,plot_count//2,figsize=(25,10))
         fig.suptitle('Clusters')
         row_i=0
