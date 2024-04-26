@@ -19,7 +19,7 @@ def plot_dataset(data):
     plot.get_figure().savefig("images/dataset.png")
     
 
-def plot_map(data):
+def plot_map(data, algorithm):
     state_county_fips = pd.read_csv("data/fips2county.tsv", sep="\t")
     state_names = state_county_fips["StateName"].tolist()
     county_names = state_county_fips["CountyName"].tolist()
@@ -40,10 +40,13 @@ def plot_map(data):
                 if state1 in pair[0] and county1 in pair[1]:
                     labels.append(str(county_fips[pair]))
                     values.append(int(data[state1][county1]))
-
+    print(labels)
+    print('=========')
+    print(values)
     fig = ff.create_choropleth(
         fips=labels, values=values, scope=["IL", "IA", "MN", "MO", "NE", "ND", "SD", "WI"],
-        county_outline={'color': 'rgb(0,0,0)', 'width': 0.5}, round_legend_values=True,
+        county_outline={'color': 'rgb(0,0,0)', 'width': 0.5}, 
+        state_outline={'color': 'rgb(0,0,0)', 'width': 1.0}, round_legend_values=True,
         legend_title='Cluster', title='Midwest Clustered by Yield'
     )
-    pio.write_image(fig, "images/cluster_map.png")
+    pio.write_image(fig, f"images/{algorithm}_map.png")

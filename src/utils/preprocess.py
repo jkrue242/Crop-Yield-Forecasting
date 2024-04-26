@@ -10,6 +10,16 @@ sys.path.append('data')
 warnings.filterwarnings('ignore')
 data_path = 'data/'
 
+def init_datasets():
+    full_data = pd.DataFrame()
+    for i in range(1,6):
+        df = _process_full_data(data_path + f'county_yields{i}.csv')
+        full_data = pd.concat([full_data, df])
+    full_data = full_data.drop_duplicates()
+    n_states = len(full_data["State"].unique())
+    full_data.to_csv(data_path + 'full_data.csv', index=False)
+    return n_states
+
 """
 Get data from USDA for corn yield (saved as a csv file)
 """
@@ -32,7 +42,7 @@ def _process_usda_data(path):
         timeseries[col] = timeseries[col].str.replace(',', '').astype(float)
     return timeseries
 
-def _process_midwest_data(path):
+def _process_full_data(path):
     raw = pd.read_csv(path, parse_dates=["Year"])[['Year', 'State', 'County', 'Data Item', 'Value']]
     raw = raw[raw['County'] != "OTHER COUNTIES"]
     # convert to datetime
@@ -67,7 +77,7 @@ def _get_weather_data(path=data_path + 'dsm_climate_data_yoy.csv'):
     ).reset_index()
     return weather_dsm
 
-def interpolate_midwest_data(data):
+def interpolate_full_data(data):
     series_lengths = [len(series) for series in data]
     problems_index = []
     max_len = max(series_lengths)
@@ -93,20 +103,24 @@ def interpolate_midwest_data(data):
     return data
 
 
-def get_midwest_data(path=data_path +'midwest1.csv'):
-    full = _process_midwest_data(path)
+def get_full_data(path=data_path +'full_data.csv'):
+    print('fetching data...')
+    full = pd.read_csv(path, delimiter=',')
+    print('splitting data...')
     series = breakup_timeseries(full)
-    return interpolate_midwest_data(data=series)
+    print('interpolating data...')
+    return interpolate_full_data(data=series)
 
 def breakup_timeseries(data):
     ts = []
     data = data[(data["County"] != "OTHER COUNTIES") & (data["County"] != "OTHER (COMBINED) COUNTIES")]
     data.set_index('Year', inplace=True)
-    states = data['State'].unique()
-    counties = data['County'].unique()
-    for s in states:
-        for c in counties:
-            ts.append(data[(data['State'] == s) & (data['County'] == c)])
+    pairs = data[['State', 'County']].drop_duplicates().values.tolist()
+
+    for p in pairs:
+        state = p[0]
+        county = p[1]
+        ts.append(data[(data['State'] == state) & (data['County'] == county)])
     return ts
 
 """
