@@ -1,17 +1,21 @@
 import pandas as pd
 import torch
 import numpy as np
+import sklearn
 from sklearn.preprocessing import MinMaxScaler
 import collections
 import os
 import math
 import sys
-from utils.minisom import MiniSom   
+from utils.minisom import MiniSom 
+import tslearn 
 from tslearn.barycenters import dtw_barycenter_averaging
+from tslearn.utils import to_time_series_dataset
 from tslearn.clustering import TimeSeriesKMeans
 from sklearn.cluster import KMeans
 import matplotlib.pyplot as plt
 from sklearn.decomposition import PCA
+from sklearn.metrics import silhouette_score
 
 class ClusterMachine:
     def __init__(self, data, iter=50000):
@@ -30,8 +34,10 @@ class ClusterMachine:
     
     def cluster(self, algorithm='kmeans', som_x=None, som_y=None, verbose=True, n_clusters=9):
         new_data = self.normalize()
+        print('CHECKPOINT')
         if algorithm == 'kmeans':
-            labels = self.kmeans(new_data, verbose=verbose, n_clusters=n_clusters)
+            labels, score = self.kmeans(new_data, verbose=verbose, n_clusters=n_clusters)
+            print("silhouette score: ", score)
         
         if algorithm == 'som':
             if som_x is not None and som_y is not None:
@@ -91,8 +97,18 @@ class ClusterMachine:
     def kmeans(self, data, verbose=True, n_clusters=9):
         km = TimeSeriesKMeans(n_clusters=n_clusters, metric="dtw", verbose=verbose, max_iter=self.iter)
         self.cluster_count = n_clusters
-        labels = km.fit_predict(data)
-
+        data = tslearn.utils.to_time_series_dataset(data)
+        print('kmeans input: ', data)
+    
+        labels = km.fit_predict(data)  
+        print('=======================================')
+        print('labels type: ', type(labels))
+        print('labels[0]', labels[0])
+        print('---------------------------------------')
+        print('data type: ', type(data))
+        # score = 0
+        score = tslearn.clustering.silhouette_score(data, labels)
+        
         print('KMeans completed')
 
         # determine the cluster for each state-county pair
@@ -101,14 +117,13 @@ class ClusterMachine:
                 for county in self.state_county_index[state].keys():
                     if self.state_county_index[state][county] == i:
                         self.cluster_data_map[state][county] = labels[i]
-        return labels
+        return labels, score
 
     def plot_clusters(self, data, labels,algorithm='kmeans'):
-        len_rows = 3
-        len_cols = 3
+        len_rows = 4
+        len_cols = 4
         fig, axs = plt.subplots(len_rows,len_cols, figsize=(25,10))
-        fig.suptitle(f'{algorithm} Clusters')
-        row_i=0
+        row_i=0 
         column_j=0
         # For each label there is,
         # plots every series with that label
@@ -127,4 +142,4 @@ class ClusterMachine:
                 column_j=0
         fig.tight_layout()
         print(f'saving image to images/{algorithm}.png')
-        plt.savefig(f"images/{algorithm}.png")
+        plt.savefig(f"images/{algorithm}_clustersA.png")

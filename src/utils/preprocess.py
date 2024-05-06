@@ -20,6 +20,16 @@ def init_datasets():
     full_data.to_csv(data_path + 'full_data.csv', index=False)
     return n_states
 
+def init_dual_datasets():
+    full_data = pd.DataFrame()
+    for i in range(1,9):
+        df = _process_full_data2(data_path + f'yield_and_prod{i}.csv')
+        full_data = pd.concat([full_data, df])
+    full_data = full_data.drop_duplicates()
+    n_states = len(full_data["State"].unique())
+    full_data.to_csv(data_path + 'full_data_dual.csv', index=False)
+    return n_states
+
 """
 Get data from USDA for corn yield (saved as a csv file)
 """
@@ -55,6 +65,21 @@ def _process_full_data(path):
     return timeseries
 
 
+def _clean(val):
+    return float(val.replace(',', ''))
+
+
+def _process_full_data2(path):
+    raw = pd.read_csv(path, parse_dates=["Year"])[['Year', 'State', 'County', 'Data Item', 'Value']]
+    raw = raw[raw['County'] != "OTHER COUNTIES"]
+
+    raw['Value'] = raw['Value'].apply(_clean)    
+
+    # convert to datetime
+    raw["Year"] = raw["Year"].dt.year
+    timeseries = raw.pivot_table(index=['Year', 'State', 'County'], columns='Data Item', values='Value').reset_index()
+    return timeseries
+
 """
 Get weather data from Des Moines, IA (saved as a csv file)
 """
@@ -77,7 +102,7 @@ def _get_weather_data(path=data_path + 'dsm_climate_data_yoy.csv'):
     ).reset_index()
     return weather_dsm
 
-def interpolate_full_data(data):
+def interpolate_full_data(data, upsample=True):
     series_lengths = [len(series) for series in data]
     problems_index = []
     max_len = max(series_lengths)
@@ -103,13 +128,15 @@ def interpolate_full_data(data):
     return data
 
 
-def get_full_data(path=data_path +'full_data.csv'):
+def get_full_data(path=data_path +'full_data.csv', interpolate=True):
     print('fetching data...')
     full = pd.read_csv(path, delimiter=',')
     print('splitting data...')
     series = breakup_timeseries(full)
-    print('interpolating data...')
-    return interpolate_full_data(data=series)
+    if interpolate:
+        print('interpolating data...')
+        return  interpolate_full_data(data=series)
+    return series
 
 def breakup_timeseries(data):
     ts = []

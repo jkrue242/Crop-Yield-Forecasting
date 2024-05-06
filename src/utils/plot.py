@@ -40,9 +40,6 @@ def plot_map(data, algorithm):
                 if state1 in pair[0] and county1 in pair[1]:
                     labels.append(str(county_fips[pair]))
                     values.append(int(data[state1][county1]))
-    print(labels)
-    print('=========')
-    print(values)
     fig = ff.create_choropleth(
         fips=labels, values=values, scope=["IL", "IA", "MN", "MO", "NE", "ND", "SD", "WI"],
         county_outline={'color': 'rgb(0,0,0)', 'width': 0.5}, 
