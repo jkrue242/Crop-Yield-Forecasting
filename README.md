@@ -9,4 +9,4 @@ Comparative study between neural network models:
 [Slide Deck](supervised_learning_project.pptx)
 
 # Time Series Clustering
-
+Self Organized Maps (SOM) and K-Means clustering using Dynamic Time Warping (DTW) as the distance metric and silhouette score as a validation metric and stopping condition
