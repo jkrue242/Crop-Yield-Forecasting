@@ -18,6 +18,9 @@ from sklearn.decomposition import PCA
 from sklearn.metrics import silhouette_score
 
 class ClusterMachine:
+    """
+    ClusterMachine class that clusters the time series data using K-Means
+    """
     def __init__(self, data, iter=50000):
         self.data = data
         self.iter = iter
@@ -32,6 +35,7 @@ class ClusterMachine:
         self.cluster_data_map = collections.defaultdict(dict)
 
     
+    # drives the cluster process
     def cluster(self, algorithm='kmeans', som_x=None, som_y=None, verbose=True, n_clusters=9):
         new_data = self.normalize()
         print('CHECKPOINT')
@@ -39,6 +43,7 @@ class ClusterMachine:
             labels, score = self.kmeans(new_data, verbose=verbose, n_clusters=n_clusters)
             print("silhouette score: ", score)
         
+        # NOT USED
         if algorithm == 'som':
             if som_x is not None and som_y is not None:
                 self.cluster_count = som_x * som_y
@@ -66,6 +71,7 @@ class ClusterMachine:
         self.plot_clusters(new_data, labels, algorithm=algorithm)
         return self.scaled_data_dict
 
+    # normalize the time series for each state county pair using MinMaxScaler
     def normalize(self):
         normalized_data = []
         index = 0
@@ -85,7 +91,7 @@ class ClusterMachine:
         self.normalized_data = normalized_data
         return self.normalized_data
 
-
+    # NOT USED
     def som_algorithm(self, data, verbose=False, som_x=3, som_y=3):
         som = MiniSom(som_x, som_y, len(data[0]), sigma=0.3, learning_rate = 0.1, random_seed=10)
         # som.random_weights_init(data)
@@ -94,6 +100,7 @@ class ClusterMachine:
         win_map = som.win_map(data)
         return win_map
 
+    # runs the KMeans algorithm on the normalized data
     def kmeans(self, data, verbose=True, n_clusters=9):
         km = TimeSeriesKMeans(n_clusters=n_clusters, metric="dtw", verbose=verbose, max_iter=self.iter)
         self.cluster_count = n_clusters
@@ -119,6 +126,7 @@ class ClusterMachine:
                         self.cluster_data_map[state][county] = labels[i]
         return labels, score
 
+    # plot each time series and its corresponding cluster
     def plot_clusters(self, data, labels,algorithm='kmeans'):
         len_rows = 4
         len_cols = 4

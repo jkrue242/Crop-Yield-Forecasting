@@ -10,6 +10,7 @@ sys.path.append('data')
 warnings.filterwarnings('ignore')
 data_path = 'data/'
 
+# initialize the datasets
 def init_datasets():
     full_data = pd.DataFrame()
     for i in range(1,6):
@@ -20,6 +21,7 @@ def init_datasets():
     full_data.to_csv(data_path + 'full_data.csv', index=False)
     return n_states
 
+# NOT USED
 def init_dual_datasets():
     full_data = pd.DataFrame()
     for i in range(1,9):
@@ -68,7 +70,7 @@ def _process_full_data(path):
 def _clean(val):
     return float(val.replace(',', ''))
 
-
+# process
 def _process_full_data2(path):
     raw = pd.read_csv(path, parse_dates=["Year"])[['Year', 'State', 'County', 'Data Item', 'Value']]
     raw = raw[raw['County'] != "OTHER COUNTIES"]
@@ -102,6 +104,7 @@ def _get_weather_data(path=data_path + 'dsm_climate_data_yoy.csv'):
     ).reset_index()
     return weather_dsm
 
+# interpolation function
 def interpolate_full_data(data, upsample=True):
     series_lengths = [len(series) for series in data]
     problems_index = []
@@ -127,7 +130,7 @@ def interpolate_full_data(data, upsample=True):
     
     return data
 
-
+# get data
 def get_full_data(path=data_path +'full_data.csv', interpolate=True):
     print('fetching data...')
     full = pd.read_csv(path, delimiter=',')
@@ -137,7 +140,7 @@ def get_full_data(path=data_path +'full_data.csv', interpolate=True):
         print('interpolating data...')
         return  interpolate_full_data(data=series)
     return series
-
+# breakup the timeseries data
 def breakup_timeseries(data):
     ts = []
     data = data[(data["County"] != "OTHER COUNTIES") & (data["County"] != "OTHER (COMBINED) COUNTIES")]

@@ -14,9 +14,9 @@ if __name__ == "__main__":
     # random.shuffle(all_timeseries)
     print(all_timeseries[0].head())
     print('=====================')
-    # print('number of states: ', n_states)
+    print('number of states: ', n_states)
     n_clusters = 4
-    # print('number of clusters: ', n_clusters)
+    print('number of clusters: ', n_clusters)
 
     # standard K means clustering
     cm1 = ClusterMachine(all_timeseries, iter=50000)
@@ -26,15 +26,3 @@ if __name__ == "__main__":
     county_cluster_map1 = cm1.cluster_data_map
     print('plotting kmeans map')
     plot_map(county_cluster_map1, algorithm='kmeans')
-
-    # all_timeseries_non_interpolated = get_full_data(interpolate=True)
-    # print(all_timeseries_non_interpolated[0].head())
-    # cm2 = ClusterMachine(all_timeseries_non_interpolated, iter=50000)
-    # new_data_2 = cm2.cluster(algorithm='kmeans', n_clusters=n_clusters, verbose=True)
-    # county_cluster_map2 = cm2.cluster_data_map
-    # print('plotting kmeans map')
-    # plot_map(county_cluster_map2, algorithm='kmeans_non_interpolated')
-    # miniSOM clustering
-    # cm2 = ClusterMachine(all_timeseries, iter=50000)
-    # print('=====================')
-    # print('training SOM...')

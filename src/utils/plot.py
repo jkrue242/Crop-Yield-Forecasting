@@ -18,7 +18,7 @@ def plot_dataset(data):
     # save the plot
     plot.get_figure().savefig("images/dataset.png")
     
-
+# plot a chloropleth map of each county and cluster
 def plot_map(data, algorithm):
     state_county_fips = pd.read_csv("data/fips2county.tsv", sep="\t")
     state_names = state_county_fips["StateName"].tolist()
